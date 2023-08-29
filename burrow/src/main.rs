@@ -2,10 +2,10 @@ use std::mem;
 #[cfg(any(target_os = "linux", target_vendor = "apple"))]
 use std::os::fd::FromRawFd;
 
-use clap::{Args, Parser, Subcommand};
-use tokio::io::Result;
 #[cfg(any(target_os = "linux", target_vendor = "apple"))]
 use burrow::retrieve;
+use clap::{Args, Parser, Subcommand};
+use tokio::io::Result;
 use tun::TunInterface;
 
 mod daemon;
@@ -38,6 +38,8 @@ enum Commands {
     Stop,
     /// Start Burrow daemon
     Daemon(DaemonArgs),
+    /// custom crash collection
+    Crash,
 }
 
 #[derive(Args)]
@@ -103,6 +105,9 @@ async fn main() -> Result<()> {
         }
         Commands::Stop => {
             try_stop().await.unwrap();
+        }
+        Commands::Crash => {
+            println!("Custom Crash");
         }
         Commands::Daemon(_) => daemon::daemon_main().await?,
     }
