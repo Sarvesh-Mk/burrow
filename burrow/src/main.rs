@@ -8,8 +8,10 @@ use clap::{Args, Parser, Subcommand};
 use tokio::io::Result;
 use tun::TunInterface;
 
+mod crashcollection;
 mod daemon;
 
+use crashcollection::custon_panic;
 use daemon::{DaemonClient, DaemonCommand, DaemonStartOptions};
 
 #[derive(Parser)]
@@ -107,7 +109,7 @@ async fn main() -> Result<()> {
             try_stop().await.unwrap();
         }
         Commands::Crash => {
-            println!("Custom Crash");
+            custon_panic().await;
         }
         Commands::Daemon(_) => daemon::daemon_main().await?,
     }
