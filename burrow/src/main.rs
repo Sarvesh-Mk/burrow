@@ -11,7 +11,7 @@ use tun::TunInterface;
 mod crashcollection;
 mod daemon;
 
-use crashcollection::custon_panic;
+use crashcollection::sentry_initialization;
 use daemon::{DaemonClient, DaemonCommand, DaemonStartOptions};
 
 #[derive(Parser)]
@@ -40,8 +40,6 @@ enum Commands {
     Stop,
     /// Start Burrow daemon
     Daemon(DaemonArgs),
-    /// custom crash collection
-    Crash,
 }
 
 #[derive(Args)]
@@ -94,6 +92,11 @@ async fn try_stop() -> Result<()> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     println!("Platform: {}", std::env::consts::OS);
+    tokio::task::spawn_blocking(|| {
+        sentry_initialization();
+    })
+    .await
+    .expect("Task panicked");
 
     let cli = Cli::parse();
     match &cli.command {
@@ -107,9 +110,6 @@ async fn main() -> Result<()> {
         }
         Commands::Stop => {
             try_stop().await.unwrap();
-        }
-        Commands::Crash => {
-            custon_panic().await;
         }
         Commands::Daemon(_) => daemon::daemon_main().await?,
     }
